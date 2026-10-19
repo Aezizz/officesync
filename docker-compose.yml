@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: officesync-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: officesync
+      MONGO_INITDB_ROOT_PASSWORD: officesyncpassword
+      MONGO_INITDB_DATABASE: officesync
+    volumes:
+      - mongo_data:/data/db
+
+  socket:
+    build:
+      context: .
+      dockerfile: apps/socket/Dockerfile
+    container_name: officesync-socket
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      PORT: 4000
+      INTERNAL_SECRET: ${SOCKET_INTERNAL_SECRET:-supersecret_internal_key}
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:3000}
+    depends_on:
+      - mongodb
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: officesync-web
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      MONGODB_URI: mongodb://officesync:officesyncpassword@mongodb:27017/officesync?authSource=admin
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-changeme_jwt_secret}
+      NEXT_PUBLIC_SOCKET_URL: http://localhost:4000
+      SOCKET_INTERNAL_SECRET: ${SOCKET_INTERNAL_SECRET:-supersecret_internal_key}
+    depends_on:
+      - mongodb
+      - socket
+
+volumes:
+  mongo_data:
