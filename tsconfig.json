@@ -7,13 +7,6 @@
       "@officesync/shared": ["./packages/shared/src/index.ts"]
     }
   },
-  "include": [
-    "apps/**/*",
-    "packages/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "**/dist",
-    "**/.next"
-  ]
+  "include": ["apps/**/*", "packages/**/*"],
+  "exclude": ["node_modules", "**/dist", "**/.next"]
 }
